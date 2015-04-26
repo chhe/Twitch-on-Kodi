@@ -18,6 +18,14 @@ STREAMER_DEFAULT_QUALITY_STORAGE = PLUGIN.get_storage('streamer-default-qualitie
 
 CONVERTER = JsonListItemConverter(PLUGIN, LINE_LENGTH, STREAMER_DEFAULT_QUALITY_STORAGE)
 
+STREAM_QUALITIES = [
+                PLUGIN.get_string(30041),
+                PLUGIN.get_string(30042),
+                PLUGIN.get_string(30043),
+                PLUGIN.get_string(30044),
+                PLUGIN.get_string(30063)
+            ]
+
 def managedTwitchExceptions(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -211,18 +219,17 @@ def removeStreamerDefaultQuality(streamer):
 
 @PLUGIN.route('/selectStreamerDefaultQuality/<streamer>')
 def selectStreamerDefaultQuality(streamer):
+    qualities = list(STREAM_QUALITIES)
+    qualities.append('same as Add-on default');
+    qualities.append('ask on stream start');
     quality = xbmcgui.Dialog().select(
                             'Choose the default quality for %s' % streamer,
-                            [
-                                PLUGIN.get_string(30041),
-                                PLUGIN.get_string(30042),
-                                PLUGIN.get_string(30043),
-                                PLUGIN.get_string(30044),
-                                PLUGIN.get_string(30063),
-                                'same as Add-on default'
-                            ])
+                            qualities
+                            )
     if quality == 5:
         quality = None
+    if quality == 6:
+        quality = 'ask'
     saveStreamerDefaultQuality(streamer, quality)
     xbmc.executebuiltin('Container.Refresh()')
 
@@ -270,7 +277,10 @@ def getUserName():
 
 
 def loadStreamerDefaultQuality(streamer):
-    defaultQuality = STREAMER_DEFAULT_QUALITY_STORAGE[streamer]
+    try:
+        defaultQuality = STREAMER_DEFAULT_QUALITY_STORAGE[streamer]
+    except KeyError:
+        return None
     return defaultQuality
 
 
@@ -284,8 +294,17 @@ def saveStreamerDefaultQuality(streamer, quality):
         STREAMER_DEFAULT_QUALITY_STORAGE[streamer] = unicode(quality)
 
 
+def selectStreamQuality(streamer):
+    quality = xbmcgui.Dialog().select(
+                            'Choose playback quality for %s' % streamer,
+                            STREAM_QUALITIES
+                            )
+    return unicode(quality)
+
 def getVideoQuality(streamer=None):
     chosenQuality = loadStreamerDefaultQuality(streamer)
+    if chosenQuality == 'ask':
+        chosenQuality = selectStreamQuality(streamer)
     if not chosenQuality:
         chosenQuality = PLUGIN.get_setting('video', unicode)
     qualities = {'0': 0, '1': 1, '2': 2, '3': 3, '4' : 4}
