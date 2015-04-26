@@ -18,9 +18,10 @@ class PlaylistConverter(object):
 
 class JsonListItemConverter(object):
 
-    def __init__(self, PLUGIN, title_length):
+    def __init__(self, PLUGIN, title_length, STREAMER_DEFAULT_QUALITY_STORAGE):
         self.plugin = PLUGIN
         self.titleBuilder = TitleBuilder(PLUGIN, title_length)
+        self.streamerDefaultQualityStorage = STREAMER_DEFAULT_QUALITY_STORAGE
 
     def convertGameToListItem(self, game):
         name = game[Keys.NAME].encode('utf-8')
@@ -64,7 +65,7 @@ class JsonListItemConverter(object):
                 'path': self.plugin.url_for(endpoint='channelVideos',
                                             name=follower[Keys.NAME]),
                 'icon': videobanner,
-                'thumbnail': videobanner 
+                'thumbnail': videobanner
                 }
 
     def convertVideoListToListItem(self,video):
@@ -80,13 +81,44 @@ class JsonListItemConverter(object):
         channel = stream[Keys.CHANNEL]
         videobanner = channel.get(Keys.VIDEO_BANNER, '')
         logo = channel.get(Keys.LOGO, '')
+        streamer = self.extractStreamTitleValues(stream)['streamer'].lower()
+        contextMenu = [
+                        ( 'Select default quality',
+                          'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                                endpoint='selectStreamerDefaultQuality',
+                                streamer=streamer
+                          )
+                        )
+                      ]
+        if self.hasDefaultQuality(streamer):
+            contextMenu.append(
+                ( 'Remove default quality setting',
+                  'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                                endpoint='removeStreamerDefaultQuality',
+                                streamer=streamer
+                  )
+                )
+            )
         return {'label': self.getTitleForStream(stream),
                 'path': self.plugin.url_for(endpoint='playLive',
                                             name=channel[Keys.NAME]),
                 'is_playable': True,
                 'icon': videobanner if videobanner else logo,
-                'thumbnail': videobanner if videobanner else logo
+                'thumbnail': videobanner if videobanner else logo,
+                'context_menu': contextMenu
                 }
+
+    def hasDefaultQuality(self, streamer):
+        self.plugin.log.error('----------------------------- DDDDDDDDDDDDDDDDDDDDDDDDDDDDD %s' % streamer)
+        try:
+            if self.streamerDefaultQualityStorage[streamer]:
+                self.plugin.log.error('----------------------------- TRUE')
+                return True
+        except Exception, e:
+            self.plugin.log.error('----------------------------- FALSE 1')
+            return False
+        self.plugin.log.error('----------------------------- FALSE 2')
+        return False
 
     def getTitleForStream(self, stream):
         titleValues = self.extractStreamTitleValues(stream)
@@ -147,7 +179,7 @@ class TitleBuilder(object):
         else:
             return value
 
-    def truncateTitle(self, title):        
+    def truncateTitle(self, title):
         truncateSetting = self.plugin.get_setting('titletruncate', unicode)
 
         if truncateSetting == "true":

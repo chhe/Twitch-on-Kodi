@@ -3,6 +3,7 @@ from converter import JsonListItemConverter, PlaylistConverter
 from functools import wraps
 from twitch import TwitchTV, Keys, TwitchException
 from xbmcswift2 import Plugin  # @UnresolvedImport
+from xbmcswift2 import xbmcgui
 import sys
 import xbmc
 
@@ -10,10 +11,12 @@ ITEMS_PER_PAGE = 20
 LINE_LENGTH = 60
 
 PLUGIN = Plugin()
-CONVERTER = JsonListItemConverter(PLUGIN, LINE_LENGTH)
 PLAYLIST_CONVERTER = PlaylistConverter()
 TWITCHTV = TwitchTV(PLUGIN.log)
 
+STREAMER_DEFAULT_QUALITY_STORAGE = PLUGIN.get_storage('streamer-default-qualities', file_format='json')
+
+CONVERTER = JsonListItemConverter(PLUGIN, LINE_LENGTH, STREAMER_DEFAULT_QUALITY_STORAGE)
 
 def managedTwitchExceptions(func):
     @wraps(func)
@@ -162,7 +165,7 @@ def playVideo(id):
     simplePlaylist = TWITCHTV.getVideoPlaylist(id,videoQuality)
     playlist = PLAYLIST_CONVERTER.convertToXBMCPlaylist(simplePlaylist)
     # Doesn't fullscreen video, might be because of xbmcswift
-    #xbmc.Player().play(playlist) 
+    #xbmc.Player().play(playlist)
 
     try:
         # Gotta wrap this in a try/except, xbmcswift causes an error when passing a xbmc.PlayList()
@@ -200,10 +203,34 @@ def showSettings():
     PLUGIN.open_settings()
 
 
+@PLUGIN.route('/removeStreamerDefaultQuality/<streamer>')
+def removeStreamerDefaultQuality(streamer):
+    saveStreamerDefaultQuality(streamer, None)
+    xbmc.executebuiltin('Container.Refresh()')
+
+
+@PLUGIN.route('/selectStreamerDefaultQuality/<streamer>')
+def selectStreamerDefaultQuality(streamer):
+    quality = xbmcgui.Dialog().select(
+                            'Choose the default quality for %s' % streamer,
+                            [
+                                PLUGIN.get_string(30041),
+                                PLUGIN.get_string(30042),
+                                PLUGIN.get_string(30043),
+                                PLUGIN.get_string(30044),
+                                PLUGIN.get_string(30063),
+                                'same as Add-on default'
+                            ])
+    if quality == 5:
+        quality = None
+    saveStreamerDefaultQuality(streamer, quality)
+    xbmc.executebuiltin('Container.Refresh()')
+
+
 @PLUGIN.route('/playLive/<name>/')
 @managedTwitchExceptions
 def playLive(name):
-    videoQuality = getVideoQuality()
+    videoQuality = getVideoQuality(name)
     url = TWITCHTV.getLiveStream(name,videoQuality)
     xbmc.Player().play(url)
     PLUGIN.set_resolved_url(url)
@@ -242,8 +269,25 @@ def getUserName():
     return username
 
 
-def getVideoQuality():
-    chosenQuality = PLUGIN.get_setting('video', unicode)
+def loadStreamerDefaultQuality(streamer):
+    defaultQuality = STREAMER_DEFAULT_QUALITY_STORAGE[streamer]
+    return defaultQuality
+
+
+def saveStreamerDefaultQuality(streamer, quality):
+    if quality is None:
+        try:
+            del STREAMER_DEFAULT_QUALITY_STORAGE[streamer]
+        except KeyError:
+            pass
+    else:
+        STREAMER_DEFAULT_QUALITY_STORAGE[streamer] = unicode(quality)
+
+
+def getVideoQuality(streamer=None):
+    chosenQuality = loadStreamerDefaultQuality(streamer)
+    if not chosenQuality:
+        chosenQuality = PLUGIN.get_setting('video', unicode)
     qualities = {'0': 0, '1': 1, '2': 2, '3': 3, '4' : 4}
     return qualities.get(chosenQuality, sys.maxint)
 
