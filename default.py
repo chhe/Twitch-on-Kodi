@@ -169,7 +169,9 @@ def channelVideosList(name,index,past):
 @managedTwitchExceptions
 def playVideo(id):
     #Get Required Quality From Settings
-    videoQuality = getVideoQuality()
+    videoQuality = normalizeQualitySelection(getVideoQuality())
+    if videoQuality is None:
+        return
     simplePlaylist = TWITCHTV.getVideoPlaylist(id,videoQuality)
     playlist = PLAYLIST_CONVERTER.convertToXBMCPlaylist(simplePlaylist)
     # Doesn't fullscreen video, might be because of xbmcswift
@@ -237,8 +239,21 @@ def selectStreamerDefaultQuality(streamer):
 @PLUGIN.route('/playLive/<name>/')
 @managedTwitchExceptions
 def playLive(name):
-    videoQuality = getVideoQuality(name)
-    url = TWITCHTV.getLiveStream(name,videoQuality)
+    videoQuality = normalizeQualitySelection(getVideoQuality(name))
+    playLiveInQuality(name, videoQuality)
+
+
+@PLUGIN.route('/playLiveWithQualitySelect/<name>/')
+@managedTwitchExceptions
+def playLiveWithQualitySelect(name):
+    videoQuality = normalizeQualitySelection(selectStreamQuality(name))
+    playLiveInQuality(name, videoQuality)
+
+
+def playLiveInQuality(name, quality):
+    if quality is None:
+        return
+    url = TWITCHTV.getLiveStream(name, quality)
     xbmc.Player().play(url)
     PLUGIN.set_resolved_url(url)
 
@@ -299,16 +314,28 @@ def selectStreamQuality(streamer):
                             'Choose playback quality for %s' % streamer,
                             STREAM_QUALITIES
                             )
-    return unicode(quality)
+    if quality >= 0:
+        return unicode(quality)
+    else:
+        return None
+
 
 def getVideoQuality(streamer=None):
     chosenQuality = loadStreamerDefaultQuality(streamer)
     if chosenQuality == 'ask':
         chosenQuality = selectStreamQuality(streamer)
-    if not chosenQuality:
+        if chosenQuality is None:
+            return None
+    if chosenQuality is None:
         chosenQuality = PLUGIN.get_setting('video', unicode)
+    return chosenQuality
+
+
+def normalizeQualitySelection(quality):
+    if quality is None:
+        return None
     qualities = {'0': 0, '1': 1, '2': 2, '3': 3, '4' : 4}
-    return qualities.get(chosenQuality, sys.maxint)
+    return qualities.get(quality, sys.maxint)
 
 
 def linkToNextPage(target, currentIndex, **kwargs):

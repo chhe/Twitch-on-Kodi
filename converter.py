@@ -83,13 +83,21 @@ class JsonListItemConverter(object):
         logo = channel.get(Keys.LOGO, '')
         streamer = self.extractStreamTitleValues(stream)['streamer'].lower()
         contextMenu = [
-                        ( 'Select default quality',
+                        ( 'Play with quality',
+                          'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                                endpoint='playLiveWithQualitySelect',
+                                name=streamer
+                          )
+                        )
+                      ]
+        contextMenu.append(
+            ( 'Select default quality',
                           'XBMC.RunPlugin(%s)' % self.plugin.url_for(
                                 endpoint='selectStreamerDefaultQuality',
                                 streamer=streamer
                           )
-                        )
-                      ]
+            )
+        )
         if self.hasDefaultQuality(streamer):
             contextMenu.append(
                 ( 'Remove default quality setting',
@@ -109,15 +117,11 @@ class JsonListItemConverter(object):
                 }
 
     def hasDefaultQuality(self, streamer):
-        self.plugin.log.error('----------------------------- DDDDDDDDDDDDDDDDDDDDDDDDDDDDD %s' % streamer)
         try:
             if self.streamerDefaultQualityStorage[streamer]:
-                self.plugin.log.error('----------------------------- TRUE')
                 return True
         except Exception, e:
-            self.plugin.log.error('----------------------------- FALSE 1')
             return False
-        self.plugin.log.error('----------------------------- FALSE 2')
         return False
 
     def getTitleForStream(self, stream):
