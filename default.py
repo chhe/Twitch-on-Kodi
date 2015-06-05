@@ -213,26 +213,26 @@ def showSettings():
     PLUGIN.open_settings()
 
 
-@PLUGIN.route('/removeStreamerDefaultQuality/<streamer>')
-def removeStreamerDefaultQuality(streamer):
-    saveStreamerDefaultQuality(streamer, None)
+@PLUGIN.route('/removeStreamerDefaultQuality/<name>')
+def removeStreamerDefaultQuality(name):
+    saveStreamerDefaultQuality(name, None)
     xbmc.executebuiltin('Container.Refresh()')
 
 
-@PLUGIN.route('/selectStreamerDefaultQuality/<streamer>')
-def selectStreamerDefaultQuality(streamer):
+@PLUGIN.route('/selectStreamerDefaultQuality/<name>')
+def selectStreamerDefaultQuality(name):
     qualities = list(STREAM_QUALITIES)
     qualities.append('same as Add-on default');
     qualities.append('ask on stream start');
     quality = xbmcgui.Dialog().select(
-                            'Choose the default quality for %s' % streamer,
+                            'Choose the default quality for %s' % name,
                             qualities
                             )
     if quality == 5:
         quality = None
     if quality == 6:
         quality = 'ask'
-    saveStreamerDefaultQuality(streamer, quality)
+    saveStreamerDefaultQuality(name, quality)
     xbmc.executebuiltin('Container.Refresh()')
 
 
