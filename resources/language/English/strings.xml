@@ -13,13 +13,13 @@
   <!--search -->
   <string id="30007">Search for channels</string>
   
-  <!--general --> 
+  <!--general -->
   <string id="30010">TwitchTV</string>
   <string id="30011">next page...</string>
   <string id="30012">-- Currently Live Streams --</string>
   <string id="30013">-- Followed Channels --</string>
 
-   <!--notifications --> 
+   <!--notifications -->
   <string id="30020">Http error</string>
   <string id="30021">No Live Data Found</string>
   <string id="30022">No archives found for</string>
@@ -45,6 +45,7 @@
   <string id="30049">Streamer</string>
   <string id="30051">Streamer - Game Title - Stream Title</string>
   <string id="30067">Game Title Viewers | Streamer - Stream Title</string>
+  <string id="30068">Viewers | Streamer [Game Title] Stream Title</string>
   <string id="30052">Enable</string>
   <string id="30053">Password (OAuth Token)</string>
 
