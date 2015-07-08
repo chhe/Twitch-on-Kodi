@@ -6,6 +6,7 @@ class PlaylistConverter(object):
     def convertToXBMCPlaylist(self, InputPlaylist):
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         playlist.clear()
+
         for (url, details) in InputPlaylist:
             if(details == ()):
                 playlist.add(url)

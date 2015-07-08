@@ -172,17 +172,19 @@ def playVideo(id):
     videoQuality = normalizeQualitySelection(getVideoQuality())
     if videoQuality is None:
         return
-    simplePlaylist = TWITCHTV.getVideoPlaylist(id,videoQuality)
-    playlist = PLAYLIST_CONVERTER.convertToXBMCPlaylist(simplePlaylist)
-    # Doesn't fullscreen video, might be because of xbmcswift
-    #xbmc.Player().play(playlist)
 
-    try:
-        # Gotta wrap this in a try/except, xbmcswift causes an error when passing a xbmc.PlayList()
-        # but still plays the playlist properly
-        PLUGIN.set_resolved_url(playlist)
-    except:
-        pass
+    if(id.startswith(('a','c'))):
+        simplePlaylist = TWITCHTV.getVideoPlaylist(id,videoQuality)
+        playlist = PLAYLIST_CONVERTER.convertToXBMCPlaylist(simplePlaylist)
+        try:
+            # Gotta wrap this in a try/except, xbmcswift causes an error when passing a xbmc.PlayList()
+            # but still plays the playlist properly
+            PLUGIN.set_resolved_url(playlist)
+        except:
+            pass
+    elif(id.startswith('v')):
+        vodUrl = TWITCHTV.getVideoVodUrl(id,videoQuality)
+        PLUGIN.set_resolved_url(vodUrl)
 
 
 @PLUGIN.route('/search/')
@@ -254,7 +256,6 @@ def playLiveInQuality(name, quality):
     if quality is None:
         return
     url = TWITCHTV.getLiveStream(name, quality)
-    xbmc.Player().play(url)
     PLUGIN.set_resolved_url(url)
     execIrcPlugin(name)
 

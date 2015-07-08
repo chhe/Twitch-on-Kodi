@@ -213,8 +213,7 @@ class TwitchTV(object):
 
         return playlist
 
-    def __getVideoPlaylistVod(self, id, maxQuality):
-        playlist = [('', ())]
+    def getVideoVodUrl(self, id, maxQuality):
         vodid = id[1:]
         url = Urls.VOD_TOKEN.format(vodid)
         access_token = self.scraper.getJson(url)
@@ -227,16 +226,11 @@ class TwitchTV(object):
         playlistQualities = M3UPlaylist(playlistQualitiesData)
 
         vodUrl = playlistQualities.getQuality(maxQuality)
-        playlist+=[(vodUrl, ())]
 
-        return playlist
+        return vodUrl
 
     def getVideoPlaylist(self, id, maxQuality):
-        playlist = [(),()]
-        if(id.startswith(('a','c'))):
-            playlist = self.__getVideoPlaylistChunkedArchived(id,maxQuality)
-        elif(id.startswith('v')):
-            playlist = self.__getVideoPlaylistVod(id,maxQuality)
+        playlist = self.__getVideoPlaylistChunkedArchived(id,maxQuality)
         return playlist
 
     def getFollowingChannelNames(self, username):
@@ -273,7 +267,7 @@ class TwitchTV(object):
         channeldata = self.scraper.getJson(tokenurl)
         channeltoken= channeldata['token']
         channelsig= channeldata['sig']
-        
+
         #Download and Parse Multiple Quality Stream Playlist
         try:
             hls_url = Urls.HLS_PLAYLIST.format(channelName,channelsig,channeltoken)
@@ -287,7 +281,7 @@ class TwitchTV(object):
 
     def _filterChannelNames(self, channels):
         tmp = [{Keys.DISPLAY_NAME : item[Keys.CHANNEL][Keys.DISPLAY_NAME], Keys.NAME : item[Keys.CHANNEL][Keys.NAME], Keys.LOGO : item[Keys.CHANNEL][Keys.LOGO]} for item in channels]
-        return sorted(tmp, key=lambda k: k[Keys.DISPLAY_NAME]) 
+        return sorted(tmp, key=lambda k: k[Keys.DISPLAY_NAME])
 
     def _fetchItems(self, url, key):
         items = self.scraper.getJson(url)
