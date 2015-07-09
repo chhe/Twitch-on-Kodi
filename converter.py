@@ -87,22 +87,13 @@ class JsonListItemConverter(object):
         videobanner = channel.get(Keys.VIDEO_BANNER, '')
         logo = channel.get(Keys.LOGO, '')
         streamer = channel[Keys.NAME]
-        contextMenu = [
-                        ( 'Play with quality',
-                          'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                                endpoint='playLiveWithQualitySelect',
-                                name=streamer
-                          )
-                        )
-                      ]
-        contextMenu.append(
-            ( 'Select default quality',
-                          'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                                endpoint='selectStreamerDefaultQuality',
-                                name=streamer
-                          )
-            )
-        )
+        
+        contextMenu = [( 'Select default quality',
+                         'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                            endpoint='selectStreamerDefaultQuality',
+                            name=streamer
+                         )
+                       )]
         if self.hasDefaultQuality(streamer):
             contextMenu.append(
                 ( 'Remove default quality setting',

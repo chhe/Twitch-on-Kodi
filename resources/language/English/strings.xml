@@ -33,6 +33,7 @@
   
   <!--settings -->
   <string id="30040">Video Quality</string>
+  <string id="30069">always ask</string>
   <string id="30041">Best possible</string>
   <string id="30042">720p</string>
   <string id="30043">480p</string>

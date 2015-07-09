@@ -323,13 +323,14 @@ def selectStreamQuality(streamer):
 
 
 def getVideoQuality(streamer=None):
+    qualitySetting = PLUGIN.get_setting('video', unicode)
     chosenQuality = loadStreamerDefaultQuality(streamer)
-    if chosenQuality == 'ask':
+    if (chosenQuality == 'ask') or (qualitySetting == '5'):
         chosenQuality = selectStreamQuality(streamer)
         if chosenQuality is None:
             return None
     if chosenQuality is None:
-        chosenQuality = PLUGIN.get_setting('video', unicode)
+        chosenQuality = qualitySetting
     return chosenQuality
 
 
