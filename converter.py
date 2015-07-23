@@ -87,11 +87,9 @@ class JsonListItemConverter(object):
         videobanner = channel.get(Keys.VIDEO_BANNER, '')
         logo = channel.get(Keys.LOGO, '')
         streamer = channel[Keys.NAME]
-        preview = stream[Keys.PREVIEW]
-        previewImage = preview.get('medium', '')
 
         icon = videobanner if videobanner else logo
-        thumbnail = previewImage if previewImage else videobanner if videobanner else logo
+        thumbnail = videobanner if videobanner else logo
 
         contextMenu = [( 'Select default quality',
                          'XBMC.RunPlugin(%s)' % self.plugin.url_for(
@@ -108,7 +106,7 @@ class JsonListItemConverter(object):
                   )
                 )
             )
-            
+
         contextMenu.append(
             ( 'Activity Feed',
               'Container.Update(%s)' % self.plugin.url_for(
@@ -117,7 +115,7 @@ class JsonListItemConverter(object):
               )
             )
         )
-            
+
         return {'label': self.getTitleForStream(stream),
                 'path': self.plugin.url_for(endpoint='playLive',
                                             name=streamer),
