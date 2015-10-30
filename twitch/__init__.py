@@ -2,6 +2,7 @@
 VERSION='0.4.0'
 MAX_RETRIES=5
 import sys
+from itertools import islice, chain, repeat
 try:
     from urllib.request import urlopen, Request
     from urllib.parse import quote_plus
@@ -157,9 +158,19 @@ class TwitchTV(object):
         channelNames = self._filterChannelNames(followingChannels)
 
         #get Streams of that Channels
-        options = '?channel=' + ','.join([channels[Keys.NAME] for channels in channelNames])
-        url = ''.join([Urls.BASE, Keys.STREAMS, options])
-        channels = {'live' : self._fetchItems(url, Keys.STREAMS)}
+        baseUrl = ''.join([Urls.BASE, Keys.STREAMS])
+        chunks = self._chunk([channels[Keys.NAME] for channels in channelNames], 200)
+
+        liveChannels = []
+
+        for chunk in chunks:
+            options = '?channel=' + ','.join(chunk)
+            url = baseUrl + options
+            liveChannels = liveChannels + self._fetchItems(url, Keys.STREAMS)
+
+        liveChannels.sort(key=lambda item: item['viewers'], reverse=True)
+
+        channels = {'live' : liveChannels}
         channels['others'] = channelNames
         return channels
 
@@ -286,6 +297,10 @@ class TwitchTV(object):
     def _fetchItems(self, url, key):
         items = self.scraper.getJson(url)
         return items[key] if items else []
+
+    def _chunk(self, it, size):
+        it = iter(it)
+        return iter(lambda: tuple(islice(it, size)), ())
 
 class Keys(object):
     '''
