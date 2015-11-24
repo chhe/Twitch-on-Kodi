@@ -164,7 +164,7 @@ class TwitchTV(object):
         liveChannels = []
 
         for chunk in chunks:
-            options = '?channel=' + ','.join(chunk)
+            options = '?channel=' + ','.join(chunk) + '&limit=200'
             url = baseUrl + options
             liveChannels = liveChannels + self._fetchItems(url, Keys.STREAMS)
 
