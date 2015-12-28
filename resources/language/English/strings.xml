@@ -34,11 +34,11 @@
   <!--settings -->
   <string id="30040">Video Quality</string>
   <string id="30069">always ask</string>
-  <string id="30041">Best possible</string>
-  <string id="30042">720p</string>
-  <string id="30043">480p</string>
-  <string id="30044">360p</string>
-  <string id="30063">226p (Mobile)</string>
+  <string id="30041">Source</string>
+  <string id="30042">High (720p)</string>
+  <string id="30043">Medium (480p)</string>
+  <string id="30044">Low (360p)</string>
+  <string id="30063">Mobile (226p)</string>
   <string id="30045">Display titles</string>
   <string id="30046">Streamer - Stream Title</string>
   <string id="30047">Viewers - Streamer - Stream Title</string>
