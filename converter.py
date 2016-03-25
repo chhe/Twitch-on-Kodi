@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from twitch import Keys
-import xbmcgui, xbmc
+import xbmcgui, xbmc, uuid
 
 class PlaylistConverter(object):
     def convertToXBMCPlaylist(self, InputPlaylist):
@@ -85,11 +85,14 @@ class JsonListItemConverter(object):
     def convertStreamToListItem(self, stream):
         channel = stream[Keys.CHANNEL]
         videobanner = channel.get(Keys.VIDEO_BANNER, '')
+        preview = stream.get(Keys.PREVIEW, '')
+        if preview:
+            preview = preview.get(Keys.MEDIUM, '') + "?uuid=" + str(uuid.uuid4());
         logo = channel.get(Keys.LOGO, '')
         streamer = channel[Keys.NAME]
 
-        icon = videobanner if videobanner else logo
-        thumbnail = videobanner if videobanner else logo
+        icon = preview if preview else logo
+        thumbnail = preview if preview else logo
 
         contextMenu = [( 'Select default quality',
                          'XBMC.RunPlugin(%s)' % self.plugin.url_for(
@@ -122,6 +125,7 @@ class JsonListItemConverter(object):
                 'is_playable': True,
                 'icon': icon,
                 'thumbnail': thumbnail,
+                'properties': { 'fanart_image': videobanner },
                 'context_menu': contextMenu
                 }
 
