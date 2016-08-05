@@ -347,10 +347,8 @@ class Keys(object):
     TITLE = 'title'
     LENGTH = 'length'
 
-    QUALITY_LIST_STREAM = ['Source', 'High', '720p60', '720p30', '540p30', '480p30', '360p30', '240p30', '144p30', 'Medi
-um', 'Low', 'Mobile']
-    QUALITY_LIST_VIDEO = ['live', '720p', '720p60', '720p30', '540p30', '480p30', '360p30', '240p30', '144p30', '480p',
-'360p', '226p']
+    QUALITY_LIST_STREAM = ['Source', 'High', 'Medium', 'Low', 'Mobile', '720p60', '720p30', '540p30', '480p30', '360p30', '240p30', '144p30']
+    QUALITY_LIST_VIDEO = ['live', '720p', '480p', '360p', '226p', '720p60', '720p30', '540p30', '480p30', '360p30', '240p30', '144p30']
 
 
 class Urls(object):
