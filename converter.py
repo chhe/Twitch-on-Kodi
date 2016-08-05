@@ -18,10 +18,9 @@ class PlaylistConverter(object):
 
 class JsonListItemConverter(object):
 
-    def __init__(self, PLUGIN, title_length, STREAMER_DEFAULT_QUALITY_STORAGE):
+    def __init__(self, PLUGIN, title_length):
         self.plugin = PLUGIN
         self.titleBuilder = TitleBuilder(PLUGIN, title_length)
-        self.streamerDefaultQualityStorage = STREAMER_DEFAULT_QUALITY_STORAGE
 
     def convertGameToListItem(self, game):
         name = game[Keys.NAME].encode('utf-8')
@@ -94,30 +93,7 @@ class JsonListItemConverter(object):
         icon = preview if preview else logo
         thumbnail = preview if preview else logo
 
-        contextMenu = [( 'Select default quality',
-                         'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                            endpoint='selectStreamerDefaultQuality',
-                            name=streamer
-                         )
-                       )]
-        if self.hasDefaultQuality(streamer):
-            contextMenu.append(
-                ( 'Remove default quality setting',
-                  'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                                endpoint='removeStreamerDefaultQuality',
-                                name=streamer
-                  )
-                )
-            )
-
-        contextMenu.append(
-            ( 'Activity Feed',
-              'Container.Update(%s)' % self.plugin.url_for(
-                                endpoint='channelVideos',
-                                name=channel[Keys.NAME]
-              )
-            )
-        )
+        contextMenu = []
 
         return {'label': self.getTitleForStream(stream),
                 'path': self.plugin.url_for(endpoint='playLive',
@@ -128,14 +104,6 @@ class JsonListItemConverter(object):
                 'properties': { 'fanart_image': videobanner },
                 'context_menu': contextMenu
                 }
-
-    def hasDefaultQuality(self, streamer):
-        try:
-            if self.streamerDefaultQualityStorage[streamer]:
-                return True
-        except Exception, e:
-            return False
-        return False
 
     def getTitleForStream(self, stream):
         titleValues = self.extractStreamTitleValues(stream)

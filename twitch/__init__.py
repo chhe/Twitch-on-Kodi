@@ -69,7 +69,6 @@ class JSONScraper(object):
 class M3UPlaylist(object):
     def __init__(self, input, qualityList = None):
         self.playlist = dict()
-        self.qualityList = qualityList or Keys.QUALITY_LIST_STREAM
 
         def parseQuality(ExtXMediaLine,ExtXStreamInfLine,Url):
             #find name of current quality, NAME=", 6 chars
@@ -89,11 +88,15 @@ class M3UPlaylist(object):
         for line in linesIterator:
             if(line.startswith('#EXT-X-MEDIA')):
                 quality, url = parseQuality(line, next(linesIterator), next(linesIterator))
-                qualityInt = self.qualityList.index(quality)
-                self.playlist[qualityInt] = url
+                self.playlist[quality] = url
         if not self.playlist:
             #playlist dict is empty
             raise ValueError('could not find playable urls')
+
+    def getQualities(self):
+        sortedQualities = list(self.playlist.keys())
+        sortedQualities.sort(key=lambda item: Keys.SORTED_QUALITY_LIST.index(item))
+        return sortedQualities
 
     #returns selected quality or best match if not available
     def getQuality(self, selectedQuality):
@@ -101,18 +104,7 @@ class M3UPlaylist(object):
             #selected quality is available
             return self.playlist[selectedQuality]
         else:
-            #not available, calculate differences to available qualities
-            #return lowest difference / lower quality if same distance
-            bestDistance = len(self.qualityList) + 1
-            bestMatch = None
-
-            for quality in sorted(self.playlist, reverse=True):
-                newDistance = abs(selectedQuality - quality)
-                if newDistance < bestDistance:
-                    bestDistance = newDistance
-                    bestMatch = quality
-
-            return self.playlist[bestMatch]
+            return self.playlist.itervalues().next()
 
     def __str__(self):
         return repr(self.playlist)
@@ -204,14 +196,10 @@ class TwitchTV(object):
         url = Urls.VIDEO_PLAYLIST.format(id)
         return self.scraper.getJson(url)
 
-    def __getVideoPlaylistChunkedArchived(self, id, maxQuality):
+    def __getVideoPlaylistChunkedArchived(self, id):
         vidChunks = self.__getChunkedVideo(id)
         chunks = []
-        if vidChunks['chunks'].get(Keys.QUALITY_LIST_VIDEO[maxQuality]):
-            # prefered quality is not None -> available
-            chunks = vidChunks['chunks'][Keys.QUALITY_LIST_VIDEO[maxQuality]]
-        else: #prefered quality is not available TODO best match
-            chunks = vidChunks['chunks'][Keys.QUALITY_LIST_VIDEO[0]]
+        chunks = vidChunks['chunks']['live']
 
         title = self.getVideoTitle(id)
         itemTitle = '%s - Part {0} of %s' % (title, len(chunks))
@@ -224,7 +212,7 @@ class TwitchTV(object):
 
         return playlist
 
-    def getVideoVodUrl(self, id, maxQuality):
+    def _getVideoVodPlaylist(self, id):
         vodid = id[1:]
         url = Urls.VOD_TOKEN.format(vodid)
         access_token = self.scraper.getJson(url)
@@ -236,12 +224,20 @@ class TwitchTV(object):
         playlistQualitiesData = self.scraper.downloadWebData(playlistQualitiesUrl)
         playlistQualities = M3UPlaylist(playlistQualitiesData)
 
-        vodUrl = playlistQualities.getQuality(maxQuality)
+        return playlistQualities
+
+    def getQualitiesForVideo(self, videoId):
+        videoPlaylist = self._getVideoVodPlaylist(videoId)
+        return videoPlaylist.getQualities()
+
+    def getVideoVodUrl(self, videoId, maxQuality):
+        videoPlaylist = self._getVideoVodPlaylist(videoId)
+        vodUrl = videoPlaylist.getQuality(maxQuality)
 
         return vodUrl
 
-    def getVideoPlaylist(self, id, maxQuality):
-        playlist = self.__getVideoPlaylistChunkedArchived(id,maxQuality)
+    def getVideoPlaylist(self, id):
+        playlist = self.__getVideoPlaylistChunkedArchived(id)
         return playlist
 
     def getFollowingChannelNames(self, username):
@@ -271,8 +267,7 @@ class TwitchTV(object):
         url = Urls.TEAMSTREAM.format(quotedTeamName)
         return self._fetchItems(url, Keys.CHANNELS)
 
-    #gets playable livestream url
-    def getLiveStream(self, channelName, maxQuality):
+    def _getStreamPlaylist(self, channelName):
         #Get Access Token (not necessary at the moment but could come into effect at any time)
         tokenurl= Urls.CHANNEL_TOKEN.format(channelName)
         channeldata = self.scraper.getJson(tokenurl)
@@ -284,11 +279,20 @@ class TwitchTV(object):
             hls_url = Urls.HLS_PLAYLIST.format(channelName,channelsig,channeltoken)
             data = self.scraper.downloadWebData(hls_url)
             playlist = M3UPlaylist(data)
-            return playlist.getQuality(maxQuality)
+            return playlist
 
         except TwitchException:
                 #HTTP Error in download web data -> stream is offline
                 raise TwitchException(TwitchException.STREAM_OFFLINE)
+
+    def getQualitiesForStream(self, channelName):
+        streamPlaylist = self._getStreamPlaylist(channelName)
+        return streamPlaylist.getQualities()
+
+    #gets playable livestream url
+    def getLiveStream(self, channelName, maxQuality):
+        streamPlaylist = self._getStreamPlaylist(channelName)
+        return streamPlaylist.getQuality(maxQuality)
 
     def _filterChannelNames(self, channels):
         tmp = [{Keys.DISPLAY_NAME : item[Keys.CHANNEL][Keys.DISPLAY_NAME], Keys.NAME : item[Keys.CHANNEL][Keys.NAME], Keys.LOGO : item[Keys.CHANNEL][Keys.LOGO]} for item in channels]
@@ -347,8 +351,7 @@ class Keys(object):
     TITLE = 'title'
     LENGTH = 'length'
 
-    QUALITY_LIST_STREAM = ['Source', 'High', 'Medium', 'Low', 'Mobile', '720p60', '720p30', '540p30', '480p30', '360p30', '240p30', '144p30']
-    QUALITY_LIST_VIDEO = ['live', '720p', '480p', '360p', '226p', '720p60', '720p30', '540p30', '480p30', '360p30', '240p30', '144p30']
+    SORTED_QUALITY_LIST = ['Source', 'live', 'High', '720p60', '720p30', '540p30', 'Medium', '480p30', 'Low', '360p30', '240p30', 'Mobile', '144p30']
 
 
 class Urls(object):

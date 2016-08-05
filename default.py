@@ -14,17 +14,7 @@ PLUGIN = Plugin()
 PLAYLIST_CONVERTER = PlaylistConverter()
 TWITCHTV = TwitchTV(PLUGIN.log)
 
-STREAMER_DEFAULT_QUALITY_STORAGE = PLUGIN.get_storage('streamer-default-qualities', file_format='json')
-
-CONVERTER = JsonListItemConverter(PLUGIN, LINE_LENGTH, STREAMER_DEFAULT_QUALITY_STORAGE)
-
-STREAM_QUALITIES = [
-                PLUGIN.get_string(30041),
-                PLUGIN.get_string(30042),
-                PLUGIN.get_string(30043),
-                PLUGIN.get_string(30044),
-                PLUGIN.get_string(30063)
-            ]
+CONVERTER = JsonListItemConverter(PLUGIN, LINE_LENGTH)
 
 def managedTwitchExceptions(func):
     @wraps(func)
@@ -168,13 +158,8 @@ def channelVideosList(name,index,past):
 @PLUGIN.route('/playVideo/<id>/')
 @managedTwitchExceptions
 def playVideo(id):
-    #Get Required Quality From Settings
-    videoQuality = normalizeQualitySelection(getVideoQuality())
-    if videoQuality is None:
-        return
-
     if(id.startswith(('a','c'))):
-        simplePlaylist = TWITCHTV.getVideoPlaylist(id,videoQuality)
+        simplePlaylist = TWITCHTV.getVideoPlaylist(id)
         playlist = PLAYLIST_CONVERTER.convertToXBMCPlaylist(simplePlaylist)
         try:
             # Gotta wrap this in a try/except, xbmcswift causes an error when passing a xbmc.PlayList()
@@ -183,6 +168,9 @@ def playVideo(id):
         except:
             pass
     elif(id.startswith('v')):
+        videoQuality = selectVideoQuality(id)
+        if videoQuality is None:
+            return
         vodUrl = TWITCHTV.getVideoVodUrl(id,videoQuality)
         PLUGIN.set_resolved_url(vodUrl)
 
@@ -215,40 +203,10 @@ def showSettings():
     PLUGIN.open_settings()
 
 
-@PLUGIN.route('/removeStreamerDefaultQuality/<name>')
-def removeStreamerDefaultQuality(name):
-    saveStreamerDefaultQuality(name, None)
-    xbmc.executebuiltin('Container.Refresh()')
-
-
-@PLUGIN.route('/selectStreamerDefaultQuality/<name>')
-def selectStreamerDefaultQuality(name):
-    qualities = list(STREAM_QUALITIES)
-    qualities.append('same as Add-on default');
-    qualities.append('ask on stream start');
-    quality = xbmcgui.Dialog().select(
-                            'Choose the default quality for %s' % name,
-                            qualities
-                            )
-    if quality == 5:
-        quality = None
-    if quality == 6:
-        quality = 'ask'
-    saveStreamerDefaultQuality(name, quality)
-    xbmc.executebuiltin('Container.Refresh()')
-
-
 @PLUGIN.route('/playLive/<name>/')
 @managedTwitchExceptions
 def playLive(name):
-    videoQuality = normalizeQualitySelection(getVideoQuality(name))
-    playLiveInQuality(name, videoQuality)
-
-
-@PLUGIN.route('/playLiveWithQualitySelect/<name>/')
-@managedTwitchExceptions
-def playLiveWithQualitySelect(name):
-    videoQuality = normalizeQualitySelection(selectStreamQuality(name))
+    videoQuality = selectStreamQuality(name)
     playLiveInQuality(name, videoQuality)
 
 
@@ -293,52 +251,28 @@ def getUserName():
     return username
 
 
-def loadStreamerDefaultQuality(streamer):
-    try:
-        defaultQuality = STREAMER_DEFAULT_QUALITY_STORAGE[streamer]
-    except KeyError:
-        return None
-    return defaultQuality
-
-
-def saveStreamerDefaultQuality(streamer, quality):
-    if quality is None:
-        try:
-            del STREAMER_DEFAULT_QUALITY_STORAGE[streamer]
-        except KeyError:
-            pass
-    else:
-        STREAMER_DEFAULT_QUALITY_STORAGE[streamer] = unicode(quality)
-
-
 def selectStreamQuality(streamer):
+    qualities = TWITCHTV.getQualitiesForStream(streamer)
     quality = xbmcgui.Dialog().select(
                             'Choose playback quality for %s' % streamer,
-                            STREAM_QUALITIES
+                            qualities
                             )
     if quality >= 0:
-        return unicode(quality)
+        return qualities[quality]
     else:
         return None
 
 
-def getVideoQuality(streamer=None):
-    qualitySetting = PLUGIN.get_setting('video', unicode)
-    chosenQuality = loadStreamerDefaultQuality(streamer)
-    if (chosenQuality == 'ask') or (qualitySetting == '5'):
-        chosenQuality = selectStreamQuality(streamer)
-        if chosenQuality is None:
-            return None
-    if chosenQuality is None:
-        chosenQuality = qualitySetting
-    return chosenQuality
-
-
-def normalizeQualitySelection(quality):
-    if quality is None:
+def selectVideoQuality(id):
+    qualities = TWITCHTV.getQualitiesForVideo(id)
+    quality = xbmcgui.Dialog().select(
+                            'Choose playback quality for %s' % id,
+                            qualities
+                            )
+    if quality >= 0:
+        return qualities[quality]
+    else:
         return None
-    qualities = {'0': 0, '1': 1, '2': 2, '3': 3, '4' : 4}
-    return qualities.get(quality, sys.maxint)
 
 
 def linkToNextPage(target, currentIndex, **kwargs):
