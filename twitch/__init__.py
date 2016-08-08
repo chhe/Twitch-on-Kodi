@@ -95,7 +95,7 @@ class M3UPlaylist(object):
 
     def getQualities(self):
         sortedQualities = list(self.playlist.keys())
-        sortedQualities.sort(key=lambda item: Keys.SORTED_QUALITY_LIST.index(item))
+        sortedQualities.sort(key=lambda item: Keys.SORTED_QUALITY_LIST.index(item) if item in Keys.SORTED_QUALITY_LIST else sys.maxint)
         return sortedQualities
 
     #returns selected quality or best match if not available
@@ -351,7 +351,7 @@ class Keys(object):
     TITLE = 'title'
     LENGTH = 'length'
 
-    SORTED_QUALITY_LIST = ['Source', 'live', 'High', '720p60', '720p30', '540p30', 'Medium', '480p30', 'Low', '360p30', '240p30', 'Mobile', '144p30']
+    SORTED_QUALITY_LIST = ['Source', 'live', '1080p60', 'High', '720p60', '720p30', '540p30', 'Medium', '480p30', 'Low', '360p30', '240p30', 'Mobile', '144p30']
 
 
 class Urls(object):
