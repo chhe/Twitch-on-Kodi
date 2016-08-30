@@ -3,6 +3,7 @@ VERSION='0.4.0'
 MAX_RETRIES=5
 import sys
 from itertools import islice, chain, repeat
+from xbmcswift2 import Plugin
 try:
     from urllib.request import urlopen, Request
     from urllib.parse import quote_plus
@@ -15,6 +16,8 @@ try:
     import json
 except:
     import simplejson as json  # @UnresolvedImport
+
+PLUGIN = Plugin()
 
 class JSONScraper(object):
     '''
@@ -46,7 +49,7 @@ class JSONScraper(object):
                 if not isinstance(err, URLError):
                     self.logger.debug("Error %s during HTTP Request, abort", repr(err))
                     raise # propagate non-URLError
-                self.logger.debug("Error %s during HTTP Request, retrying", repr(err))
+                self.logger.debug("Error %s during HTTP Request, retrying", repr(err.reason))
         else:
             raise TwitchException(TwitchException.HTTP_ERROR)
         return data
@@ -58,6 +61,19 @@ class JSONScraper(object):
         @returns JSON Object with data from URL
     '''
     def getJson(self, url, headers=None):
+        def getClientID():
+            client_id = PLUGIN.get_setting('oauth_client_id')
+            if not client_id:
+                try:
+                    client_id = b64decode(Keys.CLIENT_ID)
+                except:
+                    client_id = ''
+            return client_id
+
+        if not headers:
+            headers = {}
+        headers.setdefault(Keys.CLIENT_ID_HEADER, getClientID())
+
         jsonString = self.downloadWebData(url, headers)
         try:
             jsonDict = json.loads(jsonString)
@@ -350,6 +366,9 @@ class Keys(object):
     PREVIEW = 'preview'
     TITLE = 'title'
     LENGTH = 'length'
+
+    CLIENT_ID_HEADER = 'Client-ID'
+    CLIENT_ID = ''
 
     SORTED_QUALITY_LIST = ['Source', 'live', '1080p60', 'High', '720p60', '720p30', '540p30', 'Medium', '480p30', 'Low', '360p30', '240p30', 'Mobile', '144p30']
 

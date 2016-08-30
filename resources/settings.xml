@@ -18,4 +18,9 @@
         <!-- OAuth Token -->
         <setting id="irc_password" type="text" option="hidden" label="30053" default="" enable="eq(-2,true)" />
     </category>
+    <!-- API -->
+    <category label="API">
+        <!-- oauth_client_id -->
+        <setting id="oauth_client_id" type="text" label="30059" default="" />
+    </category>
 </settings>
