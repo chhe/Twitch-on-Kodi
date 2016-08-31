@@ -93,7 +93,12 @@ class JsonListItemConverter(object):
         icon = preview if preview else logo
         thumbnail = preview if preview else logo
 
-        contextMenu = []
+        contextMenu = [( 'Activity Feed',
+                         'Container.Update(%s)' % self.plugin.url_for(
+                                endpoint='channelVideos',
+                                name=channel[Keys.NAME]
+                         )
+                      )]
 
         return {'label': self.getTitleForStream(stream),
                 'path': self.plugin.url_for(endpoint='playLive',
