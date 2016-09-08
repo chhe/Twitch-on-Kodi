@@ -165,14 +165,16 @@ class TwitchTV(object):
         followingChannels = self.getFollowingChannelNames(username)
         channelNames = self._filterChannelNames(followingChannels)
 
+        limit = 100
+
         #get Streams of that Channels
         baseUrl = ''.join([Urls.BASE, Keys.STREAMS])
-        chunks = self._chunk([channels[Keys.NAME] for channels in channelNames], 200)
+        chunks = self._chunk([channels[Keys.NAME] for channels in channelNames], limit)
 
         liveChannels = []
 
         for chunk in chunks:
-            options = '?channel=' + ','.join(chunk) + '&limit=200'
+            options = '?channel=' + ','.join(chunk) + '&limit=' + str(limit)
             url = baseUrl + options
             liveChannels = liveChannels + self._fetchItems(url, Keys.STREAMS)
 
