@@ -72,13 +72,25 @@ class JsonListItemConverter(object):
                 'thumbnail': videobanner
                 }
 
-    def convertVideoListToListItem(self,video):
-        return {'label': video['title'],
+    def convertVideoListToListItem(self, video):
+        duration = video.get(Keys.LENGTH) if video.get(Keys.LENGTH) else 0
+        title = video.get(Keys.TITLE) if video.get(Keys.TITLE) else ''
+        description = video.get(Keys.DESCRIPTION) if video.get(Keys.DESCRIPTION) else ''
+        date = video.get(Keys.CREATED_AT)[:10] if video.get(Keys.CREATED_AT) else ''
+        image = video.get(Keys.PREVIEW) if video.get(Keys.PREVIEW) else ''
+        views = video.get(Keys.VIEWS) if video.get(Keys.VIEWS) else ''
+        game = video.get(Keys.GAME) if video.get(Keys.GAME) else ''
+        channel = video.get(Keys.CHANNEL) if video.get(Keys.CHANNEL) else ''
+        channelname = channel.get(Keys.DISPLAY_NAME) if channel.get(Keys.DISPLAY_NAME) else ''
+        plot = 'Channel: ' + channelname + '\n' + 'Game: ' + game + '\n' + 'Title: ' + title + '\n' + 'Date: ' + date + '\n' + 'Description: ' + description + '\n' + 'Views: '  + str(views)
+        return {'label': title,
                 'path': self.plugin.url_for(endpoint='playVideo',
                                             id=video['_id']),
                 'is_playable': True,
-                'icon': video.get(Keys.PREVIEW, ''),
-                'thumbnail': video.get(Keys.PREVIEW, '')
+                'icon': image,
+                'thumbnail': image,
+                'info': { 'duration': str(duration), 'plot': plot },
+                'stream_info': { 'video': { 'duration': duration } }
                 }
 
     def convertStreamToListItem(self, stream):
@@ -96,7 +108,7 @@ class JsonListItemConverter(object):
         contextMenu = [( 'Activity Feed',
                          'Container.Update(%s)' % self.plugin.url_for(
                                 endpoint='channelVideos',
-                                name=channel[Keys.NAME]
+                                name=streamer
                          )
                       )]
 
@@ -107,7 +119,23 @@ class JsonListItemConverter(object):
                 'icon': icon,
                 'thumbnail': thumbnail,
                 'properties': { 'fanart_image': videobanner },
-                'context_menu': contextMenu
+                'context_menu': contextMenu,
+                'info': self.getInfoForStream(stream)
+                }
+
+    def getInfoForStream(self, stream):
+        titleValues = self.extractStreamTitleValues(stream)
+        channel = titleValues.get('streamer') if titleValues.get('streamer') else ''
+        game = titleValues.get('game') if titleValues.get('game') else ''
+        title = titleValues.get('title') if titleValues.get('title') else ''
+        viewers = titleValues.get('viewers') if titleValues.get('viewers') else 0
+        return {
+                'plot':
+                        'Channel: ' + channel + '\n' +
+                        'Game: ' + game + '\n' +
+                        'Title: ' + title + '\n' +
+                        'Viewers: ' + str(viewers),
+                'title': title,
                 }
 
     def getTitleForStream(self, stream):

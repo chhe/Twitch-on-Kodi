@@ -372,6 +372,11 @@ class Keys(object):
     CLIENT_ID_HEADER = 'Client-ID'
     CLIENT_ID = ''
 
+    DESCRIPTION = 'description'
+    CREATED_AT = 'created_at'
+    TITLE = 'title'
+    VIEWS = 'views'
+
     SORTED_QUALITY_LIST = ['Source', 'live', '1080p60', 'High', '720p60', '720p30', '540p30', 'Medium', '480p30', 'Low', '360p30', '240p30', 'Mobile', '144p30']
 
 
