@@ -2,15 +2,10 @@
 VERSION='0.4.0'
 MAX_RETRIES=5
 import sys
+import requests
 from itertools import islice, chain, repeat
 from xbmcswift2 import Plugin
-try:
-    from urllib.request import urlopen, Request
-    from urllib.parse import quote_plus
-    from urllib.error import URLError
-except ImportError:
-    from urllib import quote_plus
-    from urllib2 import Request, urlopen, URLError
+from urllib import quote_plus
 
 try:
     import json
@@ -36,14 +31,13 @@ class JSONScraper(object):
         data = ""
         for _ in range(MAX_RETRIES):
             try:
-                req = Request(url)
-                req.add_header(Keys.USER_AGENT, Keys.USER_AGENT_STRING)
-                response = urlopen(req)
-                if sys.version_info < (3, 0):
-                    data = response.read()
+                if headers:
+                    headers[Keys.USER_AGENT] = Keys.USER_AGENT_STRING
                 else:
-                    data = response.readall().decode('utf-8')
-                response.close()
+                    headers = { Keys.USER_AGENT: Keys.USER_AGENT_STRING }
+
+                response = requests.get(url, headers=headers, verify=False)
+                data = response.content
                 break
             except Exception as err:
                 if not isinstance(err, URLError):
