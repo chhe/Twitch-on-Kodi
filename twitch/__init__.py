@@ -2,7 +2,7 @@
 VERSION='0.4.0'
 MAX_RETRIES=5
 import sys
-import requests
+from urllib2 import Request, urlopen, URLError
 from itertools import islice, chain, repeat
 from xbmcswift2 import Plugin
 from urllib import quote_plus
@@ -11,6 +11,10 @@ try:
     import json
 except:
     import simplejson as json  # @UnresolvedImport
+
+if sys.version_info >= (2, 7, 9):
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 PLUGIN = Plugin()
 
@@ -31,13 +35,17 @@ class JSONScraper(object):
         data = ""
         for _ in range(MAX_RETRIES):
             try:
+                req = Request(url)
+                req.add_header(Keys.USER_AGENT, Keys.USER_AGENT_STRING)
                 if headers:
-                    headers[Keys.USER_AGENT] = Keys.USER_AGENT_STRING
+                    for key, value in headers.iteritems():
+                        req.add_header(key, value)
+                response = urlopen(req)
+                if sys.version_info < (3, 0):
+                    data = response.read().decode('utf-8')
                 else:
-                    headers = { Keys.USER_AGENT: Keys.USER_AGENT_STRING }
-
-                response = requests.get(url, headers=headers, verify=False)
-                data = response.content
+                    data = response.readall().decode('utf-8')
+                response.close()
                 break
             except Exception as err:
                 if not isinstance(err, URLError):
