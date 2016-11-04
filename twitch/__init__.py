@@ -383,7 +383,32 @@ class Keys(object):
     TITLE = 'title'
     VIEWS = 'views'
 
-    SORTED_QUALITY_LIST = ['Source', 'live', '1080p60', 'High', '720p60', '720p30', '540p30', 'Medium', '480p30', 'Low', '360p30', '240p30', 'Mobile', '144p30']
+    SORTED_QUALITY_LIST = [
+                            'Source',
+                            'live',
+                            '1080p60 - source',
+                            '1080p60',
+                            '1080p',
+                            '720p60 - source',
+                            '720p60',
+                            '720p30 - source',
+                            '720p30',
+                            '720p',
+                            'High',
+                            '540p30',
+                            '540p',
+                            'Medium',
+                            '480p30',
+                            '480p',
+                            'Low',
+                            '360p30',
+                            '360p',
+                            '240p30',
+                            '240p',
+                            'Mobile',
+                            '144p30',
+                            '144p'
+                          ]
 
 
 class Urls(object):
