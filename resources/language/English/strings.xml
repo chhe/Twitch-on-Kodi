@@ -14,7 +14,7 @@
   <string id="30007">Search for channels</string>
 
   <!--general -->
-  <string id="30010">TwitchTV</string>
+  <string id="30010">Error in chhe's Twitch:</string>
   <string id="30011">next page...</string>
   <string id="30012">-- Currently Live Streams --</string>
   <string id="30013">-- Followed Channels --</string>
@@ -30,6 +30,7 @@
   <string id="30027">JSON error</string>
   <string id="30028">Failed to parse the result set</string>
   <string id="30029">Please check your internet connection</string>
+  <string id="30030">Empty or unknown stream/video playlist</string>
 
   <!--settings -->
   <string id="30045">Display titles</string>

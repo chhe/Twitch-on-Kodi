@@ -30,7 +30,8 @@ def handleTwitchException(exception):
     codeTranslations = {TwitchException.NO_STREAM_URL   : 30023,
                         TwitchException.STREAM_OFFLINE  : 30021,
                         TwitchException.HTTP_ERROR      : 30020,
-                        TwitchException.JSON_ERROR      : 30027}
+                        TwitchException.JSON_ERROR      : 30027,
+                        TwitchException.PLAYLIST_ERROR  : 30030}
     code = exception.code
     title = 30010
     msg = codeTranslations[code]

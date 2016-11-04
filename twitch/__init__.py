@@ -234,9 +234,11 @@ class TwitchTV(object):
             access_token['token'],
             access_token['sig'])
         playlistQualitiesData = self.scraper.downloadWebData(playlistQualitiesUrl)
-        playlistQualities = M3UPlaylist(playlistQualitiesData)
-
-        return playlistQualities
+        try:
+            playlistQualities = M3UPlaylist(playlistQualitiesData)
+            return playlistQualities
+        except ValueError:
+            raise TwitchException(TwitchException.PLAYLIST_ERROR)
 
     def getQualitiesForVideo(self, videoId):
         videoPlaylist = self._getVideoVodPlaylist(videoId)
@@ -294,8 +296,10 @@ class TwitchTV(object):
             return playlist
 
         except TwitchException:
-                #HTTP Error in download web data -> stream is offline
-                raise TwitchException(TwitchException.STREAM_OFFLINE)
+            #HTTP Error in download web data -> stream is offline
+            raise TwitchException(TwitchException.STREAM_OFFLINE)
+        except ValueError:
+            raise TwitchException(TwitchException.PLAYLIST_ERROR)
 
     def getQualitiesForStream(self, channelName):
         streamPlaylist = self._getStreamPlaylist(channelName)
@@ -409,6 +413,7 @@ class TwitchException(Exception):
     STREAM_OFFLINE = 1
     HTTP_ERROR = 2
     JSON_ERROR = 3
+    PLAYLIST_ERROR = 4
 
     def __init__(self, code):
         Exception.__init__(self)
