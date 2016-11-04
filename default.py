@@ -140,26 +140,32 @@ def createFollowingGameList():
 @managedTwitchExceptions
 def channelVideos(name):
     items = [
-        {'label': 'Past Broadcasts',
-         'path': PLUGIN.url_for(endpoint='channelVideosList', name=name, index=0, past='true')
+        {
+         'label': 'Past Broadcasts',
+         'path': PLUGIN.url_for(endpoint='channelVideosList', name=name, index=0, broadcast_type='archive')
         },
-        {'label': 'Video Highlights',
-         'path': PLUGIN.url_for(endpoint='channelVideosList', name=name, index=0, past='false')
+        {
+         'label': 'Video Highlights',
+         'path': PLUGIN.url_for(endpoint='channelVideosList', name=name, index=0, broadcast_type='highlight')
+        },
+        {
+         'label': 'Uploads',
+         'path': PLUGIN.url_for(endpoint='channelVideosList', name=name, index=0, broadcast_type='upload')
         }
     ]
     PLUGIN.set_content(getContentType())
     return items
 
 
-@PLUGIN.route('/channelVideosList/<name>/<index>/<past>/')
+@PLUGIN.route('/channelVideosList/<name>/<index>/<broadcast_type>/')
 @managedTwitchExceptions
-def channelVideosList(name,index,past):
+def channelVideosList(name, index, broadcast_type):
     index = int(index)
     offset = index * 8
-    videos = TWITCHTV.getFollowerVideos(name,offset,past)
+    videos = TWITCHTV.getFollowerVideos(name, offset, broadcast_type)
     items = [CONVERTER.convertVideoListToListItem(video) for video in videos[Keys.VIDEOS]]
     if videos[Keys.TOTAL] > (offset + 8):
-        items.append(linkToNextPage('channelVideosList', index, name=name, past=past))
+        items.append(linkToNextPage('channelVideosList', index, name=name, broadcast_type=broadcast_type))
     PLUGIN.set_content(getContentType())
     return items
 
