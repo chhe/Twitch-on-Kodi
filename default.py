@@ -65,6 +65,7 @@ def createMainListing():
          'path': PLUGIN.url_for(endpoint='showSettings')
          }
     ]
+    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -72,6 +73,7 @@ def createMainListing():
 @managedTwitchExceptions
 def createListOfFeaturedStreams():
     featuredStreams = TWITCHTV.getFeaturedStream()
+    PLUGIN.set_content(getContentType())
     return [CONVERTER.convertStreamToListItem(featuredStream[Keys.STREAM])
             for featuredStream in featuredStreams]
 
@@ -85,6 +87,7 @@ def createListOfGames(index):
     items = [CONVERTER.convertGameToListItem(element[Keys.GAME]) for element in games]
 
     items.append(linkToNextPage('createListOfGames', index))
+    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -96,6 +99,7 @@ def createListOfChannels(index):
              in TWITCHTV.getChannels(offset, limit)]
 
     items.append(linkToNextPage('createListOfChannels', index))
+    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -107,6 +111,7 @@ def createListForGame(gameName, index):
              in TWITCHTV.getGameStreams(gameName, offset, limit)]
 
     items.append(linkToNextPage('createListForGame', index, gameName=gameName))
+    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -119,6 +124,7 @@ def createFollowingList():
     liveStreams.insert(0,{'path': PLUGIN.url_for(endpoint='createFollowingList'), 'icon': u'', 'is_playable': False, 'label': PLUGIN.get_string(30012)})
     liveStreams.append({'path': PLUGIN.url_for(endpoint='createFollowingList'), 'icon': u'', 'is_playable': False, 'label': PLUGIN.get_string(30013)})
     liveStreams.extend([CONVERTER.convertFollowersToListItem(follower) for follower in streams['others']])
+    PLUGIN.set_content(getContentType())
     return liveStreams
 
 @PLUGIN.route('/createFollowingGameList/')
@@ -127,6 +133,7 @@ def createFollowingGameList():
     username = getUserName()
     games = TWITCHTV.getFollowingGames(username)
     items = [CONVERTER.convertGameToListItem(element) for element in games]
+    PLUGIN.set_content(getContentType())
     return items
 
 @PLUGIN.route('/channelVideos/<name>/')
@@ -140,6 +147,7 @@ def channelVideos(name):
          'path': PLUGIN.url_for(endpoint='channelVideosList', name=name, index=0, past='false')
         }
     ]
+    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -152,6 +160,7 @@ def channelVideosList(name,index,past):
     items = [CONVERTER.convertVideoListToListItem(video) for video in videos[Keys.VIDEOS]]
     if videos[Keys.TOTAL] > (offset + 8):
         items.append(linkToNextPage('channelVideosList', index, name=name, past=past))
+    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -194,6 +203,7 @@ def searchresults(query, index='0'):
 
     items = [CONVERTER.convertStreamToListItem(stream) for stream in streams]
     items.append(linkToNextPage('searchresults', index, query=query))
+    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -226,12 +236,14 @@ def createListOfTeams(index):
     items = [CONVERTER.convertTeamToListItem(item)for item in teams]
     if len(teams) == 25:
         items.append(linkToNextPage('createListOfTeams', index))
+    PLUGIN.set_content(getContentType())
     return items
 
 
 @PLUGIN.route('/createListOfTeamStreams/<team>/')
 @managedTwitchExceptions
 def createListOfTeamStreams(team):
+    PLUGIN.set_content(getContentType())
     return [CONVERTER.convertTeamChannelToListItem(channel[Keys.CHANNEL])
             for channel in TWITCHTV.getTeamStreams(team)]
 
@@ -242,6 +254,8 @@ def calculatePaginationValues(index):
     offset = index * limit
     return  index, offset, limit
 
+def getContentType():
+    return 'files'
 
 def getUserName():
     username = PLUGIN.get_setting('username', unicode).lower()
