@@ -56,9 +56,6 @@ def createMainListing():
         {'label': PLUGIN.get_string(30066),
          'path': PLUGIN.url_for(endpoint='createFollowingGameList')
          },
-        {'label': PLUGIN.get_string(30006),
-         'path': PLUGIN.url_for(endpoint='createListOfTeams', index='0')
-         },
         {'label': PLUGIN.get_string(30003),
          'path': PLUGIN.url_for(endpoint='search')
          },
