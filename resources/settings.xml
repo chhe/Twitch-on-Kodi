@@ -9,15 +9,6 @@
         <!-- Truncate titles -->
         <setting id="titletruncate" type="bool" label="30065" default="true" />
     </category>
-    <!-- IRC -->
-    <category label="IRC Chat">
-        <!-- Enable IRC Chat -->
-        <setting id="irc_enable" type="bool" label="30052" default="false" enable="System.HasAddon(script.ircchat)" />
-        <!-- Username -->
-        <setting id="irc_username" type="text" label="30050" default="" enable="eq(-1,true)" />
-        <!-- OAuth Token -->
-        <setting id="irc_password" type="text" option="hidden" label="30053" default="" enable="eq(-2,true)" />
-    </category>
     <!-- API -->
     <category label="API">
         <!-- oauth_client_id -->
