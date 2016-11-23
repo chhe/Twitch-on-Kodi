@@ -31,6 +31,7 @@
   <string id="30028">Failed to parse the result set</string>
   <string id="30029">Please check your internet connection</string>
   <string id="30030">Empty or unknown stream/video playlist</string>
+  <string id="30031">Twitch denied access to tis item</string>
 
   <!--settings -->
   <string id="30045">Display titles</string>
@@ -41,7 +42,7 @@
   <string id="30051">Streamer - Game Title - Stream Title</string>
   <string id="30067">Game Title Viewers | Streamer - Stream Title</string>
   <string id="30068">Viewers | Streamer [Game Title] Stream Title</string>
-  <string id="30053">Password (OAuth Token)</string>
+  <string id="30053">OAuth Token</string>
 
   <string id="30050">Username</string>
 

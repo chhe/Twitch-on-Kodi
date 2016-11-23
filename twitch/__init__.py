@@ -2,7 +2,7 @@
 VERSION='0.4.0'
 MAX_RETRIES=5
 import sys
-from urllib2 import Request, urlopen, URLError
+from urllib2 import Request, urlopen, URLError, HTTPError
 from itertools import islice, chain, repeat
 from xbmcswift2 import Plugin
 from urllib import quote_plus
@@ -48,10 +48,12 @@ class JSONScraper(object):
                 response.close()
                 break
             except Exception as err:
-                if not isinstance(err, URLError):
+                if not isinstance(err, HTTPError):
                     self.logger.debug("Error %s during HTTP Request, abort", repr(err))
-                    raise # propagate non-URLError
-                self.logger.debug("Error %s during HTTP Request, retrying", repr(err.reason))
+                    raise # propagate non-HTTPError
+                self.logger.debug("HTTP-Error during HTTP Request, return code: %s", repr(err.code))
+                if (err.code == 403):
+                    raise TwitchException(TwitchException.ACCESS_FORBIDDEN)
         else:
             raise TwitchException(TwitchException.HTTP_ERROR)
         return data
@@ -206,18 +208,18 @@ class TwitchTV(object):
         items = self.scraper.getJson(url)
         return {Keys.TOTAL : items[Keys.TOTAL], Keys.VIDEOS : items[Keys.VIDEOS]}
 
-    def getVideoTitle(self, id):
-        url = Urls.VIDEO_INFO.format(id)
+    def getVideoTitle(self, id, oAuthToken):
+        url = Urls.VIDEO_INFO.format(id)  + '?oauth_token=' + oAuthToken
         return self._fetchItems(url, 'title')
 
-    def __getChunkedVideo(self, id):
+    def __getChunkedVideo(self, id, oAuthToken):
         # twitch site queries chunked playlists also with token
         # not necessary yet but might change (similar to vod playlists)
         url = Urls.VIDEO_PLAYLIST.format(id)
         return self.scraper.getJson(url)
 
-    def __getVideoPlaylistChunkedArchived(self, id):
-        vidChunks = self.__getChunkedVideo(id)
+    def __getVideoPlaylistChunkedArchived(self, id, oAuthToken):
+        vidChunks = self.__getChunkedVideo(id, oAuthToken)
         chunks = []
         chunks = vidChunks['chunks']['live']
 
@@ -232,9 +234,9 @@ class TwitchTV(object):
 
         return playlist
 
-    def _getVideoVodPlaylist(self, id):
+    def _getVideoVodPlaylist(self, id, oAuthToken):
         vodid = id[1:]
-        url = Urls.VOD_TOKEN.format(vodid)
+        url = Urls.VOD_TOKEN.format(vodid) + '?oauth_token=' + oAuthToken
         access_token = self.scraper.getJson(url)
 
         playlistQualitiesUrl = Urls.VOD_PLAYLIST.format(
@@ -248,18 +250,18 @@ class TwitchTV(object):
         except ValueError:
             raise TwitchException(TwitchException.PLAYLIST_ERROR)
 
-    def getQualitiesForVideo(self, videoId):
-        videoPlaylist = self._getVideoVodPlaylist(videoId)
+    def getQualitiesForVideo(self, videoId, oAuthToken):
+        videoPlaylist = self._getVideoVodPlaylist(videoId, oAuthToken)
         return videoPlaylist.getQualities()
 
-    def getVideoVodUrl(self, videoId, maxQuality):
-        videoPlaylist = self._getVideoVodPlaylist(videoId)
+    def getVideoVodUrl(self, videoId, maxQuality, oAuthToken):
+        videoPlaylist = self._getVideoVodPlaylist(videoId, oAuthToken)
         vodUrl = videoPlaylist.getQuality(maxQuality)
 
         return vodUrl
 
-    def getVideoPlaylist(self, id):
-        playlist = self.__getVideoPlaylistChunkedArchived(id)
+    def getVideoPlaylist(self, id, oAuthToken):
+        playlist = self.__getVideoPlaylistChunkedArchived(id, oAuthToken)
         return playlist
 
     def getFollowingChannelNames(self, username):
@@ -447,6 +449,7 @@ class TwitchException(Exception):
     HTTP_ERROR = 2
     JSON_ERROR = 3
     PLAYLIST_ERROR = 4
+    ACCESS_FORBIDDEN = 5
 
     def __init__(self, code):
         Exception.__init__(self)

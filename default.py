@@ -27,11 +27,12 @@ def managedTwitchExceptions(func):
 
 
 def handleTwitchException(exception):
-    codeTranslations = {TwitchException.NO_STREAM_URL   : 30023,
-                        TwitchException.STREAM_OFFLINE  : 30021,
-                        TwitchException.HTTP_ERROR      : 30020,
-                        TwitchException.JSON_ERROR      : 30027,
-                        TwitchException.PLAYLIST_ERROR  : 30030}
+    codeTranslations = {TwitchException.NO_STREAM_URL    : 30023,
+                        TwitchException.STREAM_OFFLINE   : 30021,
+                        TwitchException.HTTP_ERROR       : 30020,
+                        TwitchException.JSON_ERROR       : 30027,
+                        TwitchException.PLAYLIST_ERROR   : 30030,
+                        TwitchException.ACCESS_FORBIDDEN : 30031}
     code = exception.code
     title = 30010
     msg = codeTranslations[code]
@@ -171,8 +172,9 @@ def channelVideosList(name, index, broadcast_type):
 @PLUGIN.route('/playVideo/<id>/')
 @managedTwitchExceptions
 def playVideo(id):
-    if(id.startswith(('a','c'))):
-        simplePlaylist = TWITCHTV.getVideoPlaylist(id)
+    oAuthToken = getOAuthToken()
+    if (id.startswith(('a','c'))):
+        simplePlaylist = TWITCHTV.getVideoPlaylist(id, oAuthToken)
         playlist = PLAYLIST_CONVERTER.convertToXBMCPlaylist(simplePlaylist)
         try:
             # Gotta wrap this in a try/except, xbmcswift causes an error when passing a xbmc.PlayList()
@@ -180,11 +182,11 @@ def playVideo(id):
             PLUGIN.set_resolved_url(playlist)
         except:
             pass
-    elif(id.startswith('v')):
-        videoQuality = selectVideoQuality(id)
+    elif (id.startswith('v')):
+        videoQuality = selectVideoQuality(id, oAuthToken)
         if videoQuality is None:
             return
-        vodUrl = TWITCHTV.getVideoVodUrl(id,videoQuality)
+        vodUrl = TWITCHTV.getVideoVodUrl(id, videoQuality, oAuthToken)
         PLUGIN.set_resolved_url(vodUrl)
 
 
@@ -267,6 +269,8 @@ def getUserName():
         username = PLUGIN.get_setting('username', unicode).lower()
     return username
 
+def getOAuthToken():
+    return PLUGIN.get_setting('oauth_token', unicode)
 
 def selectStreamQuality(streamer):
     qualities = TWITCHTV.getQualitiesForStream(streamer)
@@ -280,8 +284,8 @@ def selectStreamQuality(streamer):
         return None
 
 
-def selectVideoQuality(id):
-    qualities = TWITCHTV.getQualitiesForVideo(id)
+def selectVideoQuality(id, oAuthToken):
+    qualities = TWITCHTV.getQualitiesForVideo(id, oAuthToken)
     quality = xbmcgui.Dialog().select(
                             'Choose playback quality for %s' % id,
                             qualities
