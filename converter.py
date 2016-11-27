@@ -37,32 +37,6 @@ class JsonListItemConverter(object):
                 'thumbnail': image
                 }
 
-    def convertTeamToListItem(self, team):
-        name = team['name']
-        return {'label': name,
-                'path': self.plugin.url_for(endpoint='createListOfTeamStreams',
-                                            team=name),
-                'icon': team.get(Keys.LOGO, ''),
-                'thumbnail': team.get(Keys.LOGO, '')
-                }
-
-    def convertTeamChannelToListItem(self, teamChannel):
-        images = teamChannel.get('image', '')
-        image = '' if not images else images.get('size600', '')
-
-        channelname = teamChannel['name']
-        titleValues = {'streamer': teamChannel.get('display_name'),
-                       'title': teamChannel.get('title'),
-                       'viewers': teamChannel.get('current_viewers')}
-
-        title = self.titleBuilder.formatTitle(titleValues)
-        return {'label': title,
-                'path': self.plugin.url_for(endpoint='playLive', name=channelname),
-                'is_playable': True,
-                'icon': image,
-                'thumbnail': image
-                }
-
     def convertFollowersToListItem(self, follower):
         videobanner = follower.get(Keys.LOGO, '')
         return {'label': follower[Keys.DISPLAY_NAME],

@@ -279,18 +279,6 @@ class TwitchTV(object):
             offset = offset + limit
         return acc
 
-    def getTeams(self, index):
-        return self._fetchItems(Urls.TEAMS.format(str(index * 25)), Keys.TEAMS)
-
-    def getTeamStreams(self, teamName):
-        '''
-        Consider this method to be unstable, because the
-        requested resource is not part of the official Twitch API
-        '''
-        quotedTeamName = quote_plus(teamName)
-        url = Urls.TEAMSTREAM.format(quotedTeamName)
-        return self._fetchItems(url, Keys.CHANNELS)
-
     def _getStreamPlaylist(self, channelName):
         #Get Access Token (not necessary at the moment but could come into effect at any time)
         tokenurl= Urls.CHANNEL_TOKEN.format(channelName)
@@ -363,7 +351,6 @@ class Keys(object):
     STATUS = 'status'
     STREAM = 'stream'
     SWF_URL = 'swfUrl'
-    TEAMS = 'teams'
     TOKEN = 'token'
     TOP = 'top'
     TOTAL = '_total'
@@ -425,9 +412,7 @@ class Urls(object):
     GAMES = BASE + 'games/'
     STREAMS = BASE + 'streams/'
     SEARCH = BASE + 'search/'
-    TEAMS = BASE + 'teams?limit=25&offset={0}'
 
-    TEAMSTREAM = 'https://api.twitch.tv/api/team/{0}/live_channels.json'
     CHANNEL_TOKEN = 'https://api.twitch.tv/api/channels/{0}/access_token'
     VOD_TOKEN = 'https://api.twitch.tv/api/vods/{0}/access_token'
 

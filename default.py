@@ -240,26 +240,6 @@ def playLiveInQuality(name, quality):
     PLUGIN.set_resolved_url(url)
 
 
-@PLUGIN.route('/createListOfTeams/<index>/')
-@managedTwitchExceptions
-def createListOfTeams(index):
-    index = int(index)
-    teams = TWITCHTV.getTeams(index)
-    items = [CONVERTER.convertTeamToListItem(item)for item in teams]
-    if len(teams) == 25:
-        items.append(linkToNextPage('createListOfTeams', index))
-    PLUGIN.set_content(getContentType())
-    return items
-
-
-@PLUGIN.route('/createListOfTeamStreams/<team>/')
-@managedTwitchExceptions
-def createListOfTeamStreams(team):
-    PLUGIN.set_content(getContentType())
-    return [CONVERTER.convertTeamChannelToListItem(channel[Keys.CHANNEL])
-            for channel in TWITCHTV.getTeamStreams(team)]
-
-
 def clearPreviewImages():
     TextureCacheCleaner().remove_like(Keys.LIVE_PREVIEW_IMAGES, True)
 
