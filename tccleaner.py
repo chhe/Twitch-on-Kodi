@@ -62,7 +62,7 @@ class TextureCacheCleaner(object):
                 cursor.execute('SELECT id, cachedurl FROM texture WHERE url LIKE "{0}"'.format(pattern))
                 rows_list = cursor.fetchall()
                 row_count = len(rows_list)
-                percent = 100 / (row_count + 6)
+                percent = 100 / (row_count + 5)
                 if row_count > 0:
                     for index, row in enumerate(rows_list):
                         if dialog:
@@ -83,17 +83,14 @@ class TextureCacheCleaner(object):
                 if dialog:
                     dialog.update(percent * (row_count + 2), message='Committing ...')
                     cursor.execute('COMMIT')
-                    dialog.update(percent * (row_count + 3), message='Recovering free space from texture ...')
-                    cursor.execute('VACUUM texture')
-                    dialog.update(percent * (row_count + 4), message='Recovering free space from sizes ...')
-                    cursor.execute('VACUUM sizes')
-                    dialog.update(percent * (row_count + 5), message='Committing ...')
+                    dialog.update(percent * (row_count + 3), message='Recovering free space ...')
+                    cursor.execute('VACUUM')
+                    dialog.update(percent * (row_count + 4), message='Committing ...')
                     connection.commit()
                     dialog.update(100, message='Cached items removed')
                 else:
                     cursor.execute('COMMIT')
-                    cursor.execute('VACUUM texture')
-                    cursor.execute('VACUUM sizes')
+                    cursor.execute('VACUUM')
                     connection.commit()
             except:
                 if dialog:
