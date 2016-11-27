@@ -87,7 +87,8 @@ def createListOfGames(index):
     games = TWITCHTV.getGames(offset, limit)
     items = [CONVERTER.convertGameToListItem(element[Keys.GAME]) for element in games]
 
-    items.append(linkToNextPage('createListOfGames', index))
+    if len(items) >= limit:
+        items.append(linkToNextPage('createListOfGames', index))
     PLUGIN.set_content(getContentType())
     return items
 
@@ -99,7 +100,8 @@ def createListOfChannels(index):
     items = [CONVERTER.convertStreamToListItem(stream) for stream
              in TWITCHTV.getChannels(offset, limit)]
 
-    items.append(linkToNextPage('createListOfChannels', index))
+    if len(items) >= limit:
+        items.append(linkToNextPage('createListOfChannels', index))
     PLUGIN.set_content(getContentType())
     clearPreviewImages()
     return items
@@ -112,7 +114,8 @@ def createListForGame(gameName, index):
     items = [CONVERTER.convertStreamToListItem(stream) for stream
              in TWITCHTV.getGameStreams(gameName, offset, limit)]
 
-    items.append(linkToNextPage('createListForGame', index, gameName=gameName))
+    if len(items) >= limit:
+        items.append(linkToNextPage('createListForGame', index, gameName=gameName))
     PLUGIN.set_content(getContentType())
     clearPreviewImages()
     return items
@@ -165,10 +168,10 @@ def channelVideos(name):
 @managedTwitchExceptions
 def channelVideosList(name, index, broadcast_type):
     index = int(index)
-    offset = index * 8
-    videos = TWITCHTV.getFollowerVideos(name, offset, broadcast_type)
+    offset = index * ITEMS_PER_PAGE
+    videos = TWITCHTV.getFollowerVideos(name, offset, ITEMS_PER_PAGE, broadcast_type)
     items = [CONVERTER.convertVideoListToListItem(video) for video in videos[Keys.VIDEOS]]
-    if videos[Keys.TOTAL] > (offset + 8):
+    if len(items) >= ITEMS_PER_PAGE:
         items.append(linkToNextPage('channelVideosList', index, name=name, broadcast_type=broadcast_type))
     PLUGIN.set_content(getContentType())
     clearPreviewImages()
@@ -214,7 +217,9 @@ def searchresults(query, index='0'):
     streams = TWITCHTV.searchStreams(query, offset, limit)
 
     items = [CONVERTER.convertStreamToListItem(stream) for stream in streams]
-    items.append(linkToNextPage('searchresults', index, query=query))
+
+    if len(items) >= limit:
+        items.append(linkToNextPage('searchresults', index, query=query))
     PLUGIN.set_content(getContentType())
     clearPreviewImages()
     return items

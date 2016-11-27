@@ -203,8 +203,8 @@ class TwitchTV(object):
             offset = offset + limit
         return acc
 
-    def getFollowerVideos(self, username, offset, broadcast_type):
-        url = Urls.CHANNEL_VIDEOS.format(username, offset, broadcast_type)
+    def getFollowerVideos(self, username, offset, limit, broadcast_type):
+        url = Urls.CHANNEL_VIDEOS.format(username, limit, offset, broadcast_type)
         items = self.scraper.getJson(url)
         return {Keys.TOTAL : items[Keys.TOTAL], Keys.VIDEOS : items[Keys.VIDEOS]}
 
@@ -423,7 +423,7 @@ class Urls(object):
     HLS_PLAYLIST = 'https://usher.twitch.tv/api/channel/hls/{0}.m3u8?sig={1}&token={2}&allow_source=true'
     VOD_PLAYLIST = 'https://usher.twitch.tv/vod/{0}?nauth={1}&nauthsig={2}&allow_source=true'
 
-    CHANNEL_VIDEOS = 'https://api.twitch.tv/kraken/channels/{0}/videos?limit=8&offset={1}&broadcast_type={2}'
+    CHANNEL_VIDEOS = 'https://api.twitch.tv/kraken/channels/{0}/videos?limit={1}&offset={2}&broadcast_type={3}'
     VIDEO_PLAYLIST = 'https://api.twitch.tv/api/videos/{0}'
     VIDEO_INFO = 'https://api.twitch.tv/kraken/videos/{0}'
     FOLLOWED_GAMES = 'https://api.twitch.tv/api/users/{0}/follows/games'
