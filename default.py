@@ -8,7 +8,6 @@ from tccleaner import TextureCacheCleaner
 import sys
 import xbmc
 
-ITEMS_PER_PAGE = 20
 LINE_LENGTH = 60
 
 PLUGIN = Plugin()
@@ -168,10 +167,10 @@ def channelVideos(name):
 @managedTwitchExceptions
 def channelVideosList(name, index, broadcast_type):
     index = int(index)
-    offset = index * ITEMS_PER_PAGE
-    videos = TWITCHTV.getFollowerVideos(name, offset, ITEMS_PER_PAGE, broadcast_type)
+    offset = index * getItemsPerPage()
+    videos = TWITCHTV.getFollowerVideos(name, offset, getItemsPerPage(), broadcast_type)
     items = [CONVERTER.convertVideoListToListItem(video) for video in videos[Keys.VIDEOS]]
-    if len(items) >= ITEMS_PER_PAGE:
+    if len(items) >= getItemsPerPage():
         items.append(linkToNextPage('channelVideosList', index, name=name, broadcast_type=broadcast_type))
     PLUGIN.set_content(getContentType())
     clearPreviewImages()
@@ -250,12 +249,15 @@ def clearPreviewImages():
 
 def calculatePaginationValues(index):
     index = int(index)
-    limit = ITEMS_PER_PAGE
+    limit = getItemsPerPage()
     offset = index * limit
     return  index, offset, limit
 
 def getContentType():
     return 'files'
+
+def getItemsPerPage():
+    return int(PLUGIN.get_setting('items_per_page'))
 
 def getUserName():
     username = PLUGIN.get_setting('username', unicode).lower()
