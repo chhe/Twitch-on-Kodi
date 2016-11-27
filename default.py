@@ -4,6 +4,7 @@ from functools import wraps
 from twitch import TwitchTV, Keys, TwitchException
 from xbmcswift2 import Plugin  # @UnresolvedImport
 from xbmcswift2 import xbmcgui
+from tccleaner import TextureCacheCleaner
 import sys
 import xbmc
 
@@ -73,6 +74,7 @@ def createMainListing():
 def createListOfFeaturedStreams():
     featuredStreams = TWITCHTV.getFeaturedStream()
     PLUGIN.set_content(getContentType())
+    clearPreviewImages()
     return [CONVERTER.convertStreamToListItem(featuredStream[Keys.STREAM])
             for featuredStream in featuredStreams]
 
@@ -99,6 +101,7 @@ def createListOfChannels(index):
 
     items.append(linkToNextPage('createListOfChannels', index))
     PLUGIN.set_content(getContentType())
+    clearPreviewImages()
     return items
 
 
@@ -111,6 +114,7 @@ def createListForGame(gameName, index):
 
     items.append(linkToNextPage('createListForGame', index, gameName=gameName))
     PLUGIN.set_content(getContentType())
+    clearPreviewImages()
     return items
 
 
@@ -124,6 +128,7 @@ def createFollowingList():
     liveStreams.append({'path': PLUGIN.url_for(endpoint='createFollowingList'), 'icon': u'', 'is_playable': False, 'label': PLUGIN.get_string(30013)})
     liveStreams.extend([CONVERTER.convertFollowersToListItem(follower) for follower in streams['others']])
     PLUGIN.set_content(getContentType())
+    clearPreviewImages()
     return liveStreams
 
 @PLUGIN.route('/createFollowingGameList/')
@@ -166,6 +171,7 @@ def channelVideosList(name, index, broadcast_type):
     if videos[Keys.TOTAL] > (offset + 8):
         items.append(linkToNextPage('channelVideosList', index, name=name, broadcast_type=broadcast_type))
     PLUGIN.set_content(getContentType())
+    clearPreviewImages()
     return items
 
 
@@ -210,6 +216,7 @@ def searchresults(query, index='0'):
     items = [CONVERTER.convertStreamToListItem(stream) for stream in streams]
     items.append(linkToNextPage('searchresults', index, query=query))
     PLUGIN.set_content(getContentType())
+    clearPreviewImages()
     return items
 
 
@@ -252,6 +259,9 @@ def createListOfTeamStreams(team):
     return [CONVERTER.convertTeamChannelToListItem(channel[Keys.CHANNEL])
             for channel in TWITCHTV.getTeamStreams(team)]
 
+
+def clearPreviewImages():
+    TextureCacheCleaner().remove_like(Keys.LIVE_PREVIEW_IMAGES, True)
 
 def calculatePaginationValues(index):
     index = int(index)

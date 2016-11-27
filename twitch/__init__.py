@@ -385,6 +385,8 @@ class Keys(object):
     TITLE = 'title'
     VIEWS = 'views'
 
+    LIVE_PREVIEW_IMAGES = '%://static-cdn.jtvnw.net/previews-ttv/live_user_%-%___x%___.%'
+
     SORTED_QUALITY_LIST = [
                             'Source',
                             'live',
