@@ -22,6 +22,28 @@ class JsonListItemConverter(object):
         self.plugin = PLUGIN
         self.titleBuilder = TitleBuilder(PLUGIN, title_length)
 
+    def convertCommunityToListItem(self, community):
+        name = community[Keys.NAME].encode('utf-8')
+        communityID = community['_id']
+        channels = community['channels']
+        viewers = community['viewers']
+        if not name:
+            name = self.plugin.get_string(30071)
+
+        try:
+            image = community['avatar_image_url']
+        except:
+            image = 'http://static-cdn.jtvnw.net/ttv-static/404_boxart.jpg'
+
+        name = name + ' (viewers: ' + str(viewers) + ', channels: ' + str(channels) + ')'
+
+        return {'label': name,
+                'path': self.plugin.url_for('createListForCommunity',
+                                            communityID=communityID, index='0'),
+                'icon': image,
+                'thumbnail': image
+                }
+
     def convertGameToListItem(self, game):
         name = game[Keys.NAME].encode('utf-8')
         if not name:

@@ -147,6 +147,23 @@ class TwitchTV(object):
         url = ''.join([Urls.GAMES, Keys.TOP, options])
         return self._fetchItems(url, Keys.TOP)
 
+    def getCommunities(self, cursor=None, limit=10):
+        if cursor:
+            options = Urls.OPTIONS_CURSOR_LIMIT.format(cursor, limit)
+        else:
+            options = Urls.OPTIONS_LIMIT.format(limit)
+        url = ''.join([Urls.COMMUNITIES, Keys.TOP, options])
+        headers = { 'Accept': 'application/vnd.twitchtv.v5+json' }
+
+        return self._fetchItems(url, Keys.COMMUNITIES, headers)
+
+    def getCommunityStreams(self, communityID, offset=0, limit=10):
+        options = Urls.OPTIONS_OFFSET_LIMIT.format(offset, limit)
+        url = ''.join(['https://api.twitch.tv/kraken/streams', options, '&community_id=', communityID])
+        headers = { 'Accept': 'application/vnd.twitchtv.v5+json' }
+
+        return self._fetchItems(url, Keys.STREAMS, headers)
+
     def getChannels(self, offset=0, limit=10):
         options = Urls.OPTIONS_OFFSET_LIMIT.format(offset, limit)
         url = ''.join([Urls.STREAMS, options])
@@ -312,9 +329,17 @@ class TwitchTV(object):
         tmp = [{Keys.DISPLAY_NAME : item[Keys.CHANNEL][Keys.DISPLAY_NAME], Keys.NAME : item[Keys.CHANNEL][Keys.NAME], Keys.LOGO : item[Keys.CHANNEL][Keys.LOGO]} for item in channels]
         return sorted(tmp, key=lambda k: k[Keys.DISPLAY_NAME].lower())
 
-    def _fetchItems(self, url, key):
-        items = self.scraper.getJson(url)
-        return items[key] if items else []
+    def _fetchItems(self, url, key, headers=None):
+        items = self.scraper.getJson(url, headers)
+        try:
+            cursor = items[Keys.CURSOR] if items else None
+        except KeyError:
+            cursor = None
+        fetchedItems = items[key] if items else []
+        if cursor:
+            return fetchedItems, cursor
+        else:
+            return fetchedItems
 
     def _chunk(self, it, size):
         it = iter(it)
@@ -353,6 +378,8 @@ class Keys(object):
     SWF_URL = 'swfUrl'
     TOKEN = 'token'
     TOP = 'top'
+    COMMUNITIES = 'communities'
+    CURSOR = '_cursor'
     TOTAL = '_total'
     USER_AGENT = 'User-Agent'
     USER_AGENT_STRING = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0) Gecko/20100101 Firefox/6.0'
@@ -412,10 +439,13 @@ class Urls(object):
     GAMES = BASE + 'games/'
     STREAMS = BASE + 'streams/'
     SEARCH = BASE + 'search/'
+    COMMUNITIES = BASE + 'communities/'
 
     CHANNEL_TOKEN = 'https://api.twitch.tv/api/channels/{0}/access_token'
     VOD_TOKEN = 'https://api.twitch.tv/api/vods/{0}/access_token'
 
+    OPTIONS_LIMIT = '?limit={0}'
+    OPTIONS_CURSOR_LIMIT = '?cursor={0}&limit={1}'
     OPTIONS_OFFSET_LIMIT = '?offset={0}&limit={1}'
     OPTIONS_OFFSET_LIMIT_GAME = OPTIONS_OFFSET_LIMIT + '&game={2}'
     OPTIONS_OFFSET_LIMIT_QUERY = OPTIONS_OFFSET_LIMIT + '&q={2}'

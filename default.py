@@ -51,6 +51,9 @@ def createMainListing():
         {'label': PLUGIN.get_string(30008),
          'path': PLUGIN.url_for(endpoint='createListOfChannels', index='0')
          },
+        {'label': PLUGIN.get_string(30070),
+         'path': PLUGIN.url_for(endpoint='createListOfCommunities', cursor='None')
+         },
         {'label': PLUGIN.get_string(30002),
          'path': PLUGIN.url_for(endpoint='createFollowingList')
          },
@@ -101,6 +104,38 @@ def createListOfChannels(index):
 
     if len(items) >= limit:
         items.append(linkToNextPage('createListOfChannels', index))
+    PLUGIN.set_content(getContentType())
+    clearPreviewImages()
+    return items
+
+
+@PLUGIN.route('/createListOfCommunities/<cursor>/')
+@managedTwitchExceptions
+def createListOfCommunities(cursor):
+    limit = getItemsPerPage()
+    communities, cursor = TWITCHTV.getCommunities(None if cursor == 'None' else cursor , limit)
+    items = [CONVERTER.convertCommunityToListItem(community) for community
+             in communities]
+
+    if len(items) >= limit:
+        items.append({
+                        'label': PLUGIN.get_string(30011),
+                        'path': PLUGIN.url_for('createListOfCommunities', cursor=cursor)
+                    })
+    PLUGIN.set_content(getContentType())
+    clearPreviewImages()
+    return items
+
+
+@PLUGIN.route('/createListForCommunity/<communityID>/<index>/')
+@managedTwitchExceptions
+def createListForCommunity(communityID, index):
+    index, offset, limit = calculatePaginationValues(index)
+    items = [CONVERTER.convertStreamToListItem(stream) for stream
+             in TWITCHTV.getCommunityStreams(communityID, offset, limit)]
+
+    if len(items) >= limit:
+        items.append(linkToNextPage('createListForCommunity', index, communityID=communityID))
     PLUGIN.set_content(getContentType())
     clearPreviewImages()
     return items
