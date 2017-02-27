@@ -67,7 +67,6 @@ def createMainListing():
          'path': PLUGIN.url_for(endpoint='showSettings')
          }
     ]
-    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -91,7 +90,6 @@ def createListOfGames(index):
 
     if len(items) >= limit:
         items.append(linkToNextPage('createListOfGames', index))
-    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -122,7 +120,6 @@ def createListOfCommunities(cursor):
                         'label': PLUGIN.get_string(30011),
                         'path': PLUGIN.url_for('createListOfCommunities', cursor=cursor)
                     })
-    PLUGIN.set_content(getContentType())
     clearPreviewImages()
     return items
 
@@ -174,7 +171,6 @@ def createFollowingGameList():
     username = getUserName()
     games = TWITCHTV.getFollowingGames(username)
     items = [CONVERTER.convertGameToListItem(element) for element in games]
-    PLUGIN.set_content(getContentType())
     return items
 
 @PLUGIN.route('/channelVideos/<name>/')
@@ -194,7 +190,6 @@ def channelVideos(name):
          'path': PLUGIN.url_for(endpoint='channelVideosList', name=name, index=0, broadcast_type='upload')
         }
     ]
-    PLUGIN.set_content(getContentType())
     return items
 
 
@@ -289,7 +284,7 @@ def calculatePaginationValues(index):
     return  index, offset, limit
 
 def getContentType():
-    return 'files'
+    return 'episodes'
 
 def getItemsPerPage():
     return int(PLUGIN.get_setting('items_per_page'))
