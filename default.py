@@ -55,6 +55,9 @@ def createMainListing():
          'path': PLUGIN.url_for(endpoint='createListOfCommunities', cursor='None')
          },
         {'label': PLUGIN.get_string(30002),
+         'path': PLUGIN.url_for(endpoint='createFollowingListLive')
+         },
+        {'label': PLUGIN.get_string(30006),
          'path': PLUGIN.url_for(endpoint='createFollowingList')
          },
         {'label': PLUGIN.get_string(30066),
@@ -152,18 +155,26 @@ def createListForGame(gameName, index):
     return items
 
 
+@PLUGIN.route('/createFollowingListLive/')
+@managedTwitchExceptions
+def createFollowingListLive():
+    username = getUserName()
+    streams = TWITCHTV.getFollowingStreams(username)
+    liveStreams = [CONVERTER.convertStreamToListItem(stream) for stream in streams['live']]
+    PLUGIN.set_content(getContentType())
+    clearPreviewImages()
+    return liveStreams
+
+
 @PLUGIN.route('/createFollowingList/')
 @managedTwitchExceptions
 def createFollowingList():
     username = getUserName()
     streams = TWITCHTV.getFollowingStreams(username)
-    liveStreams = [CONVERTER.convertStreamToListItem(stream) for stream in streams['live']]
-    liveStreams.insert(0,{'path': PLUGIN.url_for(endpoint='createFollowingList'), 'icon': u'', 'is_playable': False, 'label': PLUGIN.get_string(30012)})
-    liveStreams.append({'path': PLUGIN.url_for(endpoint='createFollowingList'), 'icon': u'', 'is_playable': False, 'label': PLUGIN.get_string(30013)})
-    liveStreams.extend([CONVERTER.convertFollowersToListItem(follower) for follower in streams['others']])
+    followedChannels = [CONVERTER.convertFollowersToListItem(follower) for follower in streams['others']]
     PLUGIN.set_content(getContentType())
     clearPreviewImages()
-    return liveStreams
+    return followedChannels
 
 @PLUGIN.route('/createFollowingGameList/')
 @managedTwitchExceptions

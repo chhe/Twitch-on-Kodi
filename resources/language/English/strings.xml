@@ -2,7 +2,8 @@
 <strings>
   <!-- main menu -->
   <string id="30001">Games</string>
-  <string id="30002">Followed Channels</string>
+  <string id="30002">Currently Live Followed Channels</string>
+  <string id="30006">All Followed Channels</string>
   <string id="30066">Followed Games</string>
   <string id="30003">Search</string>
   <string id="30004">Settings</string>
@@ -16,8 +17,6 @@
   <!--general -->
   <string id="30010">Error in chhe's Twitch:</string>
   <string id="30011">next page...</string>
-  <string id="30012">-- Currently Live Followed Channels --</string>
-  <string id="30013">-- All Followed Channels --</string>
 
    <!--notifications -->
   <string id="30020">Http error</string>
