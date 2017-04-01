@@ -2,6 +2,7 @@
 VERSION='0.4.0'
 MAX_RETRIES=5
 import sys
+import re
 from urllib2 import Request, urlopen, URLError, HTTPError
 from itertools import islice, chain, repeat
 from xbmcswift2 import Plugin
@@ -115,7 +116,7 @@ class M3UPlaylist(object):
 
     def getQualities(self):
         sortedQualities = list(self.playlist.keys())
-        sortedQualities.sort(key=lambda item: Keys.SORTED_QUALITY_LIST.index(item) if item in Keys.SORTED_QUALITY_LIST else sys.maxint)
+        sortedQualities.sort(key=lambda item: Keys.WEIGHED_QUALITES[item.lower()] if item.lower() in Keys.WEIGHED_QUALITES.keys() else -1 * int(re.sub(r"[^0-9]", "", item)) if len(re.sub(r"[^0-9]", "", item)) != 0 else sys.maxint * -1)
         return sortedQualities
 
     #returns selected quality or best match if not available
@@ -401,32 +402,14 @@ class Keys(object):
 
     LIVE_PREVIEW_IMAGES = '%://static-cdn.jtvnw.net/previews-ttv/live_user_%-%___x%___.%'
 
-    SORTED_QUALITY_LIST = [
-                            'Source',
-                            'live',
-                            '1080p60 - source',
-                            '1080p60',
-                            '1080p',
-                            '720p60 - source',
-                            '720p60',
-                            '720p30 - source',
-                            '720p30',
-                            '720p',
-                            'High',
-                            '540p30',
-                            '540p',
-                            'Medium',
-                            '480p30',
-                            '480p',
-                            'Low',
-                            '360p30',
-                            '360p',
-                            '240p30',
-                            '240p',
-                            'Mobile',
-                            '144p30',
-                            '144p'
-                          ]
+    WEIGHED_QUALITES = {
+                         'source': -1 * sys.maxint,
+                           'live': -1 * sys.maxint,
+                           'high': -1 * (sys.maxint - 1),
+                         'medium': -1 * (sys.maxint - 2),
+                            'low': -1 * (sys.maxint - 3),
+                         'mobile': -1 * (sys.maxint - 4)
+                       }
 
 
 class Urls(object):
