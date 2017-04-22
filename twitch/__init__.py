@@ -115,8 +115,23 @@ class M3UPlaylist(object):
             raise ValueError('could not find playable urls')
 
     def getQualities(self):
+
+        def sortQualities(a, b):
+            if "source" in a.lower():
+                return -1
+            if "source" in b.lower():
+                return 1
+            if (a.lower() in Keys.WEIGHED_QUALITES.keys()):
+                if (b.lower() in Keys.WEIGHED_QUALITES.keys()):
+                    return Keys.WEIGHED_QUALITES[a.lower()] - Keys.WEIGHED_QUALITES[b.lower()]
+
+            if (len(re.sub(r"[^0-9]", "", a)) != 0):
+                if (len(re.sub(r"[^0-9]", "", b)) != 0):
+                    return int(re.sub(r"[^0-9]", "", b)) - int(re.sub(r"[^0-9]", "", a))
+            return -1
+
         sortedQualities = list(self.playlist.keys())
-        sortedQualities.sort(key=lambda item: Keys.WEIGHED_QUALITES[item.lower()] if item.lower() in Keys.WEIGHED_QUALITES.keys() else -1 * int(re.sub(r"[^0-9]", "", item)) if len(re.sub(r"[^0-9]", "", item)) != 0 else sys.maxint * -1)
+        sortedQualities.sort(sortQualities)
         return sortedQualities
 
     #returns selected quality or best match if not available
